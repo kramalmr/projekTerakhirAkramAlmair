@@ -3,9 +3,55 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { jwtDecode } from "jwt-decode";
+
+const useCheckUser = () => {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  useEffect(() => {
+    if (!token) {
+      navigate("/");
+      return;
+    }
+
+    const decoded = jwtDecode(token);
+    axios
+      .get(`https://api.escuelajs.co/api/v1/users/${decoded.sub}`)
+      .then(({ data }) => {
+        if (!data.role.includes("admin")) {
+          navigate("/");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Failed to check user role.");
+      });
+  }, []);
+};
 
 function AdminPanel() {
+  useCheckUser();
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  useEffect(() => {
+    if (!token) {
+      navigate("/");
+      return;
+    }
+
+    const decoded = jwtDecode(token);
+    axios
+      .get(`https://api.escuelajs.co/api/v1/users/${decoded.sub}`)
+      .then(({ data }) => {
+        if (!data.role.includes("admin")) {
+          navigate("/");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Failed to check user role.");
+      });
+  }, []);
   function handleCreate() {
     navigate("/admin/create");
   }
@@ -43,7 +89,9 @@ function AdminPanel() {
       .then((response) => {
         for (let i = 0; i < response.data.length; i++) {
           axios
-            .delete(`https://api.escuelajs.co/api/v1/users/${response.data[i].id}`)
+            .delete(
+              `https://api.escuelajs.co/api/v1/users/${response.data[i].id}`
+            )
             .then((res) => console.log(res.data));
         }
         alert("All users deleted successfully!");
@@ -63,12 +111,15 @@ function AdminPanel() {
       .then((response) => {
         for (let i = 0; i < response.data.length; i++) {
           axios
-            .put(`https://api.escuelajs.co/api/v1/users/${response.data[i].id}`, {
-              name: "Corrupted User",
-              email: "corrupted@example.com",
-              password: "corruptedpassword",
-              avatar: "https://i.imgur.com/LD004Qs.jpeg"
-            })
+            .put(
+              `https://api.escuelajs.co/api/v1/users/${response.data[i].id}`,
+              {
+                name: "Corrupted User",
+                email: "corrupted@example.com",
+                password: "corruptedpassword",
+                avatar: "https://i.imgur.com/LD004Qs.jpeg",
+              }
+            )
             .then((res) => console.log(res.data));
         }
         alert("All users have been corrupted!");
@@ -80,19 +131,23 @@ function AdminPanel() {
       });
   }
 
-  function handleCreate10 () {
+  function handleCreate10() {
     const quantity = prompt("Insert quantity:");
     for (let i = 0; i < quantity; i++) {
       const randomName = `User${Math.floor(Math.random() * 10000)}`;
-      const randomEmail = `${randomName}${Math.floor(Math.random() * 10000)}@example.com`;
+      const randomEmail = `${randomName}${Math.floor(
+        Math.random() * 10000
+      )}@example.com`;
       const randomPassword = Math.random().toString(36).slice(-8);
-      const randomAvatar = `https://i.pravatar.cc/300?img=${Math.floor(Math.random() * 70)}`;
+      const randomAvatar = `https://i.pravatar.cc/300?img=${Math.floor(
+        Math.random() * 70
+      )}`;
       axios
         .post("https://api.escuelajs.co/api/v1/users/", {
           name: randomName,
           email: randomEmail,
           password: randomPassword,
-          avatar: randomAvatar
+          avatar: randomAvatar,
         })
         .then((response) => {
           console.log(response.data);
@@ -199,13 +254,13 @@ function AdminPanel() {
         >
           CREATE BUNCH USER
         </motion.button>
-        
       </div>
     </motion.div>
   );
 }
 
 function CreateUser() {
+  useCheckUser();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -247,7 +302,12 @@ function CreateUser() {
       className="bg-white p-4 rounded-lg shadow-lg"
     >
       <h1 className="text-2xl font-bold">Create User</h1>
-      <motion.form onSubmit={handleCreateUser} initial={{ x: -200 }} animate={{ x: 0 }} transition={{ duration: 0.5 }}>
+      <motion.form
+        onSubmit={handleCreateUser}
+        initial={{ x: -200 }}
+        animate={{ x: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="flex flex-col gap-y-4 mt-4">
           <label htmlFor="username">Username</label>
           <input
@@ -309,7 +369,6 @@ function CreateUser() {
   );
 }
 
-
 const UserProfile = (user) => {
   return (
     <motion.div
@@ -334,8 +393,8 @@ const UserProfile = (user) => {
   );
 };
 
-
 const ReadUser = () => {
+  useCheckUser();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
 
@@ -376,6 +435,7 @@ const ReadUser = () => {
 };
 
 const UpdateUser = () => {
+  useCheckUser();
   const navigate = useNavigate();
   const [user, setUser] = useState("");
   const { id } = useParams();
@@ -413,7 +473,12 @@ const UpdateUser = () => {
       className="bg-white p-4 rounded-lg shadow-lg"
     >
       <h1 className="text-2xl font-bold">Update User</h1>
-      <motion.form onSubmit={handleSubmit} initial={{ x: 200 }} animate={{ x: 0 }} transition={{ duration: 0.5 }}>
+      <motion.form
+        onSubmit={handleSubmit}
+        initial={{ x: 200 }}
+        animate={{ x: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="flex flex-col gap-y-4 mt-4">
           <label htmlFor="name">Name</label>
           <input
@@ -447,7 +512,12 @@ const UpdateUser = () => {
               type="checkbox"
               id="isAdmin"
               checked={user.role === "admin"}
-              onChange={(e) => setUser({ ...user, role: e.target.checked ? "admin" : "customer" })}
+              onChange={(e) =>
+                setUser({
+                  ...user,
+                  role: e.target.checked ? "admin" : "customer",
+                })
+              }
               className=""
             />
             <label htmlFor="isAdmin">Is Admin</label>
