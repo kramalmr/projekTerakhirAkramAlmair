@@ -26,8 +26,8 @@ export const Login = () => {
         localStorage.setItem("token", response.data.access_token);
         localStorage.token ? navigate("/") : navigate("/login");
       })
-      .catch((error) => {
-        alert(error.response.data);
+      .catch(() => {
+        alert("Invalid email or password.");
       });
 
     setEmail("");

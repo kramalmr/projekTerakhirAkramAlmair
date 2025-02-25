@@ -28,12 +28,12 @@ export const Register = () => {
 
     axios
       .post("https://api.escuelajs.co/api/v1/users/", newUser)
-      .then((response) => {
-        alert("User created successfully! " + response.data);
+      .then(() => {
+        alert("User created successfully!");
         navigate("/login");
       })
-      .catch((error) => {
-        console.log(error);
+      .catch(() => {
+        alert("Failed to create user.");
       });
 
     setName("");
